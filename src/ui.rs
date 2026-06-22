@@ -13,7 +13,8 @@ use std::fmt::Display;
 use std::io;
 use std::path::PathBuf;
 
-use crate::{Result, SecretString, decrypt_from_file, encrypt_to_file};
+use crate::Result;
+use crate::crypt::{self, SecretString, decrypt_from_file, encrypt_to_file};
 
 pub fn run(path: Option<String>) -> Result<()> {
     if let Some(path) = path {
@@ -101,7 +102,7 @@ struct DocumentView<'a> {
 
 impl DocumentView<'_> {
     fn new(path: PathBuf) -> Result<Self> {
-        let password = crate::prompt_secret("Please enter password:");
+        let password = crypt::prompt_secret("Please enter password:");
         let plaintext = decrypt_from_file(&path, &password)?;
 
         let mut textarea = TextArea::new(
@@ -127,7 +128,7 @@ impl DocumentView<'_> {
     fn save(&mut self) -> Result<()> {
         if self.modified {
             loop {
-                let yes_no = crate::prompt("Save modifications (y|n)");
+                let yes_no = crypt::prompt("Save modifications (y|n)");
                 match yes_no.as_str() {
                     "y" => {
                         let plaintext = self.textarea.lines().join("\n");
@@ -325,7 +326,7 @@ impl Editor<'_> {
                     } => {
                         let textarea = &mut self.document.textarea;
                         textarea.copy();
-                        crate::log("Copied selection to yank buffer");
+                        log("Copied selection to yank buffer");
                         // if let Some(clipboard) = clipboard.as_mut() {
                         //     crate::log(&format!("Copied to clipboard: {}", textarea.yank_text()));
                         //     clipboard.set_text(textarea.yank_text())?;
@@ -365,7 +366,7 @@ impl Editor<'_> {
                     } => {
                         let s = self.document.textarea.yank_text();
                         // crate::log(&format!("Paste from clipboard: {}", clipboard.get_text()?));
-                        crate::log(&format!("Paste from yank buffer: {s}"));
+                        log(&format!("Paste from yank buffer: {s}"));
                         self.document.textarea.insert_str(s);
                     }
                     Input {
@@ -403,4 +404,18 @@ fn close(mut editor: Editor) -> Result<()> {
 
     editor.document.save()?;
     Ok(())
+}
+
+pub fn log(message: &str) {
+    if !std::env::args().any(|arg| arg == "--log") {
+        return;
+    };
+    let filename = "log.txt";
+    let mut file = std::fs::File::options()
+        .append(true)
+        .create(true)
+        .open(filename)
+        .unwrap();
+    use std::io::Write;
+    writeln!(&mut file, "{message}").unwrap();
 }
