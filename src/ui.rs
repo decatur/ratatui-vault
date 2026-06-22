@@ -318,46 +318,47 @@ impl Editor<'_> {
                     //     //     DisableMouseCapture
                     //     // )?;
                     // }
-                    Input {
-                        key: Key::Char('c'),
-                        ctrl: true,
-                        alt: false,
-                        ..
-                    } => {
-                        let textarea = &mut self.document.textarea;
-                        textarea.copy();
-                        log("Copied selection to yank buffer");
-                        // if let Some(clipboard) = clipboard.as_mut() {
-                        //     crate::log(&format!("Copied to clipboard: {}", textarea.yank_text()));
-                        //     clipboard.set_text(textarea.yank_text())?;
-                        // } else {
-                        //     crate::log(&format!(
-                        //         "Manipulate Selection Data: {}",
-                        //         textarea.yank_text()
-                        //     ));
-                        // }
-                    }
                     // Input {
-                    //     key: Key::Char('w'),
+                    //     key: Key::Char('c'),
                     //     ctrl: true,
                     //     alt: false,
                     //     ..
                     // } => {
                     //     let textarea = &mut self.document.textarea;
                     //     textarea.copy();
-                    //     // clipboard.set_text(textarea.yank_text().trim())?;
-                    //     // crate::log(&format!("Copied to clipboard: {}", textarea.yank_text()));
+                    //     log("Copied selection to yank buffer");
+                    //     // if let Some(clipboard) = clipboard.as_mut() {
+                    //     //     crate::log(&format!("Copied to clipboard: {}", textarea.yank_text()));
+                    //     //     clipboard.set_text(textarea.yank_text())?;
+                    //     // } else {
+                    //     //     crate::log(&format!(
+                    //     //         "Manipulate Selection Data: {}",
+                    //     //         textarea.yank_text()
+                    //     //     ));
+                    //     // }
                     // }
                     Input {
-                        key: Key::Char('x'),
+                        key: Key::Char('g'),
                         ctrl: true,
                         alt: false,
                         ..
                     } => {
-                        let textarea = &mut self.document.textarea;
-                        textarea.cut();
-                        // clipboard.set_text(textarea.yank_text())?;
+                        self.document
+                            .textarea
+                            .insert_str(crypt::generate_password(20));
+                        let buffer = &mut self.document;
+                        buffer.modified = true;
                     }
+                    // Input {
+                    //     key: Key::Char('x'),
+                    //     ctrl: true,
+                    //     alt: false,
+                    //     ..
+                    // } => {
+                    //     let textarea = &mut self.document.textarea;
+                    //     textarea.cut();
+                    //     // clipboard.set_text(textarea.yank_text())?;
+                    // }
                     Input {
                         key: Key::Char('v'),
                         ctrl: true,
@@ -366,8 +367,10 @@ impl Editor<'_> {
                     } => {
                         let s = self.document.textarea.yank_text();
                         // crate::log(&format!("Paste from clipboard: {}", clipboard.get_text()?));
-                        log(&format!("Paste from yank buffer: {s}"));
+                        // log(&format!("Paste from yank buffer: {s}"));
                         self.document.textarea.insert_str(s);
+                        let buffer = &mut self.document;
+                        buffer.modified = true;
                     }
                     Input {
                         key: Key::Char('q'),

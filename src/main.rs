@@ -17,7 +17,6 @@ fn help() {
     println!("  ratatui-vault diff vault_a vault_b");
     println!("  ratatui-vault dump myvault | grep MyBank -A 5");
     println!("  ratatui-vault query myvault https://github.com/login");
-    println!("  ratatui-vault generate");
 }
 
 /// # Usage
@@ -28,7 +27,6 @@ fn help() {
 ///     ratatui-vault diff vault_a vault_b
 ///     ratatui-vault dump myvault | grep MyBank -A 5
 ///     ratatui-vault query myvault github
-///     ratatui-vault generate
 /// ``````
 pub fn main() -> Result<()> {
     let mut args = env::args();
@@ -51,9 +49,6 @@ pub fn main() -> Result<()> {
             }
             "query" => {
                 commands::query::run(args.take(2).collect::<Vec<_>>())?;
-            }
-            "generate" => {
-                println!("{}", crypt::generate_password(20));
             }
             cmd => {
                 println!("Invalid command {cmd}");

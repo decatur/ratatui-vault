@@ -79,3 +79,24 @@ impl Model {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::model::Model;
+
+    #[test]
+    fn serde() {
+        let a = Model {
+            version: 1,
+            nonce: vec![1, 2, 3],
+            salt: vec![1, 2, 3],
+            ciphertext: vec![1, 2, 3],
+        };
+        let buf = a.serialize();
+        let b = Model::deserialize(&buf);
+        assert_eq!(b.version, a.version);
+        assert_eq!(b.nonce, a.nonce);
+        assert_eq!(b.salt, a.salt);
+        assert_eq!(b.ciphertext, a.ciphertext);
+    }
+}
