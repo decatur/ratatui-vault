@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use crate::{Error, Result};
+use crate::crypt;
+use crate::error_string::{Error, Result};
 
 pub fn run(args: Vec<String>) -> Result<()> {
     if args.len() != 2 {
@@ -9,8 +10,8 @@ pub fn run(args: Vec<String>) -> Result<()> {
     let [path, section] = [&args[0], &args[1]];
     let section_not_found = || format!("Could not find section {section}");
 
-    let password = crate::prompt_secret("Please enter password:");
-    let haystack = crate::decrypt_from_file(&PathBuf::from(path), &password)?;
+    let password = crypt::prompt_secret("Please enter password:");
+    let haystack = crypt::decrypt_from_file(&PathBuf::from(path), &password)?;
     enum Status {
         Initial,
         SectionFound,

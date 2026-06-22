@@ -1,3 +1,4 @@
+use crate::crypt;
 use std::path::Path;
 
 pub fn run(args: Vec<String>) {
@@ -9,9 +10,9 @@ pub fn run(args: Vec<String>) {
 }
 
 fn diff_lines(a: &Path, b: &Path) {
-    let password = crate::prompt_secret("Please enter password:");
-    let left = crate::decrypt_from_file(a, &password).unwrap();
-    let right = crate::decrypt_from_file(b, &password).unwrap();
+    let password = crypt::prompt_secret("Please enter password:");
+    let left = crypt::decrypt_from_file(a, &password).unwrap();
+    let right = crypt::decrypt_from_file(b, &password).unwrap();
 
     let mut last_match = None;
     for diff in diff::lines(&left, &right) {

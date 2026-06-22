@@ -106,6 +106,7 @@ Trying to implement this head on can be a really painful experience.
 * Directly talk to the clipboard API, e.g. via `arboard`
 * Configure the terminal to use the `ratatui-textarea` internal yank keys.
 * Disable your terminal mouse selection by setting `crossterm::event::EnableMouseCapture`.
+* Trap `SIGINT` in the shell or in the App (e.g. via the CtrlC crate). 
 
 ## Rationals
 

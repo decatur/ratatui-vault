@@ -11,13 +11,8 @@ use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
 };
 
-pub mod commands;
-mod error_string;
-mod model;
-pub mod ui;
-
+use crate::error_string::{Error, Result};
 use crate::model::Model;
-pub use error_string::{Error, Result};
 
 #[derive(PartialEq)]
 pub(crate) struct SecretString(String);
@@ -113,20 +108,6 @@ pub fn generate_password(size: usize) -> String {
         cipher.push(c);
     }
     cipher
-}
-
-pub(crate) fn log(message: &str) {
-    if !std::env::args().any(|arg| arg == "--log") {
-        return;
-    };
-    let filename = "log.txt";
-    let mut file = std::fs::File::options()
-        .append(true)
-        .create(true)
-        .open(filename)
-        .unwrap();
-    use std::io::Write;
-    writeln!(&mut file, "{message}").unwrap();
 }
 
 pub(crate) fn prompt_secret(text: &str) -> SecretString {

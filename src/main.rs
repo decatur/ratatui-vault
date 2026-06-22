@@ -3,7 +3,13 @@
 ///
 use std::env;
 
-use ratatui_vault::{Result, commands, generate_password};
+mod commands;
+mod crypt;
+mod error_string;
+mod model;
+mod ui;
+
+use error_string::Result;
 
 fn help() {
     println!("Usage:");
@@ -21,7 +27,7 @@ fn main() -> Result<()> {
     if let Some(cmd) = args.nth(1) {
         match cmd.as_str() {
             "edit" => {
-                ratatui_vault::ui::run(args.next())?;
+                crate::ui::run(args.next())?;
             }
             "create" => {
                 commands::create::run(args.next())?;
@@ -39,7 +45,7 @@ fn main() -> Result<()> {
                 commands::query::run(args.take(2).collect::<Vec<_>>())?;
             }
             "generate" => {
-                println!("{}", generate_password(20));
+                println!("{}", crypt::generate_password(20));
             }
             cmd => {
                 println!("Invalid command {cmd}");
