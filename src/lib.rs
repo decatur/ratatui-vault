@@ -1,3 +1,4 @@
+//! The ratatui-vault library
 use std::{fmt, path::Path};
 
 use argon2::Argon2;
