@@ -1,6 +1,5 @@
-/// Usage:
-///     cargo run
-///
+//! A terminal password manager: minimal and auditable.
+
 use std::env;
 
 mod commands;

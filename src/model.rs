@@ -1,27 +1,28 @@
 //! Very simple binary format of an encrypted file.
 //! The len fields are stored big endian.
 //!
-//!  0 1 2 3 4 5 6 7 8...
+//! ```text
+//!  0 1 2 3 4 5 6 7 8 ...
 //! +-+-------+-------->
-//! +V+ nonce + nonce ->
-//! +E+  len  +
-//! +R+       +
-//! +S+       +
-//! +I+       +
-//! +O+       +
-//! +N+       +
+//! │V│ nonce │ nonce ->
+//! │E│   len │
+//! │R│       │
+//! │S│       │
+//! │I│       │
+//! │O│       │
+//! │N│       │
 //!
 //!  0 1 2 3 4 5 6 7 ...
-//! +-------+------>
-//! + salt  + salt ->
-//! +  len  +
+//! +-------+------->
+//! │  salt │ salt ->
+//! │   len │
 //!
 //!  0 1 2 3 4 5 6 7 ...
 //! +-------+------------->
-//! +cipher + ciphertext ->
-//! + text  +
-//! +  len  +
-//!
+//! │cipher │ ciphertext ->
+//! │  text │
+//! │   len │
+//!```
 //! See also <https://github.com/C2SP/C2SP/blob/main/age.md>
 pub(crate) struct Model {
     pub(crate) version: u8,

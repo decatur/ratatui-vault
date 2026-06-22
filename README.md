@@ -1,4 +1,4 @@
-Your terminal password manager is minimal and auditable.
+A terminal password manager: minimal and auditable.
 
 # Technologies
 
