@@ -6,6 +6,8 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/decatur/ratatui-vault"
 readme = "README.md"
+categories = ["command-line-utilities", "text-editors", "cryptography"]
+keywords = ["cli", "password", "manager", "tui"]
 
 [dependencies]
 argon2 = "0.5"
