@@ -8,6 +8,12 @@ From the [Rust Crypto LandScape](https://github.com/rustcrypto), we use
 
 For the terminal user interface (TUI), we use [ratatui-textarea](https://crates.io/crates/ratatui-textarea).
 
+# Tested Releases
+
+```cat /etc/*-release
+microsoft-standard-WSL2 Ubuntu 24.04
+CentOS Linux 7 (Core)
+```
 
 # Edit
 ```
@@ -81,6 +87,17 @@ Trying to implement this head on can be a really painful experience.
 * Select text to be copied to clipboard with your mouse.
 * Map Copy to clipboard and Paste from clipboard shortcuts in your terminal to CTRL+SHIFT+C and CTRL+SHIFT+V.
 * Use Copy to yank-buffer and Paste from yank-buffer shortcuts CTRL+C and CTRL+V.
+
+## Terminal Settings
+
+### Gnome Terminal Settings
+
+![Gnome Terminal Settings](todo)
+
+### WSL2 Terminal Settings
+
+![WSL2 TErminal Settings for Actions](assets/wsl2_terminal_settings.png)
+
 
 ## Misguide
 
