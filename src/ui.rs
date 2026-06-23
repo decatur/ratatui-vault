@@ -11,22 +11,49 @@ use ratatui_widgets::paragraph::Paragraph;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::Result;
 use crate::crypt::{self, SecretString, decrypt_from_file, encrypt_to_file};
+use crate::error_string::Error;
 
-pub fn run(path: Option<String>) -> Result<()> {
-    if let Some(path) = path {
-        let path = std::path::Path::new(&path);
-        assert!(path.is_file());
-        let mut editor = Editor::new(path)?;
+pub fn run(args: Vec<String>) -> Result<()> {
+    if args.len() == 1 {
+        // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
+        let password = crypt::prompt_secret("Please enter password:");
+        let target = Path::new(&args[0]);
+        let (plaintext, modified)  = if target.is_file() {
+            match decrypt_from_file(target, &password) {
+                Ok(plaintext) => (plaintext, false),
+                Err(_) => (String::from_utf8(std::fs::read(target)?)?, true),
+            }
+        } else {
+            ("[MySection]".to_owned(), true)
+        };
+
+        let mut editor = Editor::new(target, plaintext, password, modified)?;
         editor.run()?;
-        close(editor)?;
+        close(editor)
+    } else if args.len() == 2 {
+        // merge right onto left
+        let target = Path::new(&args[0]);
+        if !target.is_file() {
+            return Err(Error(format!("Target {target:?} is not a file")));
+        }
+        let source = Path::new(&args[1]);
+        if !source.is_file() {
+            return Err(Error(format!("Source {source:?} is not a file")));
+        }
+        let password = crypt::prompt_secret("Please enter password:");
+        let plaintext = crate::commands::diff::merge(target, source, &password);
+        let mut editor = Editor::new(target, plaintext, password, true)?;
+        editor.run()?;
+        close(editor)
     } else {
-        println!("The edit command needs one argument of type path");
+        Err(Error(
+            "The edit command needs one or two path arguments".to_owned(),
+        ))
     }
-    Ok(())
 }
 struct SearchBox<'a> {
     textarea: TextArea<'a>,
@@ -101,10 +128,7 @@ struct DocumentView<'a> {
 }
 
 impl DocumentView<'_> {
-    fn new(path: PathBuf) -> Result<Self> {
-        let password = crypt::prompt_secret("Please enter password:");
-        let plaintext = decrypt_from_file(&path, &password)?;
-
+    fn new(path: &Path, plaintext: String, password: SecretString) -> Result<Self> {
         let mut textarea = TextArea::new(
             plaintext
                 .lines()
@@ -119,7 +143,7 @@ impl DocumentView<'_> {
 
         Ok(Self {
             textarea,
-            path,
+            path: path.to_path_buf(),
             modified: false,
             password,
         })
@@ -160,11 +184,9 @@ struct Editor<'a> {
 }
 
 impl Editor<'_> {
-    fn new<I>(path: I) -> Result<Self>
-    where
-        I: Into<PathBuf>,
-    {
-        let document = DocumentView::new(path.into())?;
+    fn new(source: &Path, plaintext: String, password: SecretString, modified: bool) -> Result<Self> {
+        let mut document = DocumentView::new(source, plaintext, password)?;
+        document.modified = modified;
 
         let mut stdout = io::stdout();
         crossterm::terminal::enable_raw_mode()?;
@@ -409,6 +431,7 @@ fn close(mut editor: Editor) -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn log(message: &str) {
     if !std::env::args().any(|arg| arg == "--log") {
         return;

@@ -1,40 +1,17 @@
-use crate::crypt;
+use crate::crypt::{self, SecretString};
 use std::path::Path;
 
-pub fn run(args: Vec<String>) {
-    if args.len() == 2 {
-        diff_lines(Path::new(&args[0]), Path::new(&args[1]));
-    } else {
-        println!("Command diff needs two path arguments");
-    }
-}
-
-fn diff_lines(a: &Path, b: &Path) {
-    let password = crypt::prompt_secret("Please enter password:");
-    let left = crypt::decrypt_from_file(a, &password).unwrap();
-    let right = crypt::decrypt_from_file(b, &password).unwrap();
-
-    let mut last_match = None;
+/// Apply source onto target, i.e. a line in source not in target is marked with a '+'.
+pub fn merge(target: &Path, source: &Path, password: &SecretString) -> String {
+    let left = crypt::decrypt_from_file(target, &password).unwrap();
+    let right = crypt::decrypt_from_file(source, &password).unwrap();
+    let mut buf = vec![];
     for diff in diff::lines(&left, &right) {
-        match diff {
-            diff::Result::Left(l) => {
-                if let Some(cr) = last_match {
-                    println!(" {cr}");
-                    last_match = None;
-                }
-                println!("- {l}");
-            }
-            diff::Result::Both(l, _) => {
-                last_match = Some(l);
-                // println!(" {}", l)
-            }
-            diff::Result::Right(r) => {
-                if let Some(cr) = last_match {
-                    println!(" {cr}");
-                    last_match = None;
-                }
-                println!("+ {r}");
-            }
-        }
+        buf.push(match diff {
+            diff::Result::Left(l) => format!("-{}", l),
+            diff::Result::Both(l, _) => l.to_owned(),
+            diff::Result::Right(r) => format!("+{}", r),
+        });
     }
+    buf.join("\n")
 }

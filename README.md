@@ -34,7 +34,7 @@ cargo install ratatui_vault
 # Edit a Vault
 
 ```
-cargo run edit sample_vault
+cargo run sample_vault
 # Please enter password: a-a-a-a-
 ```
 ## Keyboard Shortcuts
@@ -49,10 +49,29 @@ These are the shortcuts added to, or modified from, the [ratatui-textarea defaul
 | CTRL+F  | Find regular expression in document. |
 | CTRL+Q  | Exit the editor and prompt if modification should be saved. |
 
+## Create a New Vault
+
+If the specified path does not exist, a new vault will be created.
+
+## Import Plaintext into New Vault
+
+If the specified path is plaintext, it will be converted into a vault.
+
+## Merge two Vaults
+
+You can apply a source onto a target vault, i.e. merge source into target.
+Each line in source not in target is marked with a '+', and with '-' the other way around.
+
+Both vaults must have the same password.
+```
+cargo run target_vault source_vault
+```
+
 # Dump
 
+Dump the plaintext to `stdout.
 ```
-cargo run dump sample_vault`
+cargo run sample_vault --dump`
 # Please enter password: a-a-a-a-
 # ->
 # [Hello-World]
@@ -62,18 +81,26 @@ cargo run dump sample_vault`
 
 # Query
 
-You can query the pwd field of a section (supports toml-like section header), for example
+You can query a section (supports toml-like section header), for example
 ```
-cargo run query sample_vault 'Hello-World'
+cargo run sample_vault --query='Hello-World'
 # Please enter password: a-a-a-a-
 # ->Generate a passphrase at the cursor location
 # user=Foo
 # pwd=Bar
 
 # Or assign to variables
-source <(cargo run  query sample_vault 'Hello-World')
+source <(cargo run sample_vault --query='Hello-World')
 echo $user
 # -> Foo
+```
+
+# Change Vault Password
+
+To change the password of a vault,
+```
+cargo run sample_vault --change
+# Please enter password: a-a-a-a-
 ```
 
 # Backup Vault File in the Cloud

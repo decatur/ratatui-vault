@@ -1,12 +1,7 @@
 use crate::{crypt, error_string};
 
-pub fn run(path: Option<String>) -> error_string::Result<()> {
-    let Some(path) = path else {
-        println!("Command change needs a path parameter");
-        return Ok(());
-    };
-
-    let path = std::path::Path::new(&path);
+pub fn run(path: &str) -> error_string::Result<()> {
+    let path = std::path::Path::new(path);
     assert!(path.is_file(), "Path must be a vault");
 
     let old_password = crypt::prompt_secret("Enter old password:");

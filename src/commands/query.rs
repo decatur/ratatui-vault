@@ -3,11 +3,7 @@ use std::path::PathBuf;
 use crate::crypt;
 use crate::error_string::{Error, Result};
 
-pub fn run(args: Vec<String>) -> Result<()> {
-    if args.len() != 2 {
-        println!("The query command needs path and section arguments");
-    }
-    let [path, section] = [&args[0], &args[1]];
+pub fn run(path: &str, section: &str) -> Result<()> {
     let section_not_found = || format!("Could not find section {section}");
 
     let password = crypt::prompt_secret("Please enter password:");
