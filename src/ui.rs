@@ -22,7 +22,7 @@ pub fn run(args: Vec<String>) -> Result<()> {
         // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
         let password = crypt::prompt_secret("Please enter password:");
         let target = Path::new(&args[0]);
-        let (plaintext, modified)  = if target.is_file() {
+        let (plaintext, modified) = if target.is_file() {
             match decrypt_from_file(target, &password) {
                 Ok(plaintext) => (plaintext, false),
                 Err(_) => (String::from_utf8(std::fs::read(target)?)?, true),
@@ -184,7 +184,12 @@ struct Editor<'a> {
 }
 
 impl Editor<'_> {
-    fn new(source: &Path, plaintext: String, password: SecretString, modified: bool) -> Result<Self> {
+    fn new(
+        source: &Path,
+        plaintext: String,
+        password: SecretString,
+        modified: bool,
+    ) -> Result<Self> {
         let mut document = DocumentView::new(source, plaintext, password)?;
         document.modified = modified;
 

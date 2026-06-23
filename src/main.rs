@@ -43,13 +43,13 @@ pub fn main() -> Result<()> {
         let (key, value) = options.into_iter().next().unwrap();
         match key.as_str() {
             "change" => {
-                commands::change::run(&path)?;
+                commands::change::run(path)?;
             }
             "dump" => {
-                commands::dump::run(&path)?;
+                commands::dump::run(path)?;
             }
             "query" => {
-                commands::query::run(&path, &value)?;
+                commands::query::run(path, &value)?;
             }
             option => {
                 panic!("Invalid option {option}")
@@ -63,11 +63,15 @@ fn parse_args(args: Vec<String>) -> (Vec<String>, HashMap<String, String>) {
     let mut positional = vec![];
     let mut options = HashMap::new();
     for arg in args {
-        if arg.starts_with("--") {
-            let parts = arg[2..].split('=').collect::<Vec<_>>();
-            assert!(!parts.is_empty() && parts.len() <= 2);
-            let key = parts[0];
-            let value = if parts.len() == 1 { key } else { parts[1] };
+        if let Some(option) = arg.strip_prefix("--") {
+            let key_value = option.split('=').collect::<Vec<_>>();
+            assert!(!key_value.is_empty() && key_value.len() <= 2);
+            let key = key_value[0];
+            let value = if key_value.len() == 1 {
+                key
+            } else {
+                key_value[1]
+            };
             options.insert(key.to_owned(), value.to_owned());
         } else {
             positional.push(arg.to_owned());
