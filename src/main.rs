@@ -1,5 +1,4 @@
 //! A terminal password manager: minimal and auditable.
-use std::{collections::HashMap, env};
 
 mod commands;
 mod crypt;
@@ -19,13 +18,13 @@ use error_string::Result;
 
 /// # Usage
 /// ```text
-///     ratatui-vault edit vault_a [vault_b]
-///     ratatui-vault change myvault
-///     ratatui-vault dump myvault | grep MyBank -A 5
-///     ratatui-vault query myvault github
+///     ratatui-vault vault_a [vault_b]
+///     ratatui-vault myvault --change
+///     ratatui-vault myvault --dump | grep MyBank -A 5
+///     ratatui-vault myvault --query github
 /// ``````
 pub fn main() -> Result<()> {
-    let args = env::args().skip(1).collect::<Vec<_>>();
+    let args = std::env::args().skip(1).collect::<Box<_>>();
     let (positional, options) = parse_args(args);
 
     println!("{options:?} {positional:?}");
@@ -38,9 +37,11 @@ pub fn main() -> Result<()> {
             1,
             "Exactely one positional argument expected."
         );
-        let path = &positional[0];
+        let path = std::path::Path::new(&positional[0]);
+        assert!(path.is_file(), "Path must be a vault");
+
         assert_eq!(options.len(), 1, "Exactely one option argument expected.");
-        let (key, value) = options.into_iter().next().unwrap();
+        let [key, value] = options.first().unwrap();
         match key.as_str() {
             "change" => {
                 commands::change::run(path)?;
@@ -59,20 +60,16 @@ pub fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse_args(args: Vec<String>) -> (Vec<String>, HashMap<String, String>) {
+/// Splits a flat array of strings like std::env::args() into positional and option arguments.
+/// For example [foo, --foz=baz, bar] -> ([foo, bar], [[foz, baz]])
+fn parse_args(args: Box<[String]>) -> (Vec<String>, Vec<[String; 2]>) {
     let mut positional = vec![];
-    let mut options = HashMap::new();
+    let mut options = vec![];
     for arg in args {
         if let Some(option) = arg.strip_prefix("--") {
-            let key_value = option.split('=').collect::<Vec<_>>();
-            assert!(!key_value.is_empty() && key_value.len() <= 2);
-            let key = key_value[0];
-            let value = if key_value.len() == 1 {
-                key
-            } else {
-                key_value[1]
-            };
-            options.insert(key.to_owned(), value.to_owned());
+            if let Some((key, value)) = option.split_once('=') {
+                options.push([key.to_owned(), value.to_owned()]);
+            }
         } else {
             positional.push(arg.to_owned());
         }
@@ -85,13 +82,13 @@ mod tests {
 
     #[test]
     fn parse_args() {
-        let line = "foo --foo=baz bar";
+        let line = "foo --foz=baz bar";
         let args = line
             .split_ascii_whitespace()
             .map(|arg| arg.to_owned())
-            .collect::<Vec<_>>();
+            .collect::<Box<_>>();
         let (positional, options) = super::parse_args(args);
-        assert_eq!(options.get("foo").unwrap().as_str(), "baz");
+        assert_eq!(options, vec![["foz", "baz"]]);
         assert_eq!(positional, vec!["foo", "bar"]);
     }
 }

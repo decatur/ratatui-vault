@@ -1,9 +1,6 @@
 use crate::{crypt, error_string};
 
-pub fn run(path: &str) -> error_string::Result<()> {
-    let path = std::path::Path::new(path);
-    assert!(path.is_file(), "Path must be a vault");
-
+pub fn run(path: &std::path::Path) -> error_string::Result<()> {
     let old_password = crypt::prompt_secret("Enter old password:");
     let plaintext = crypt::decrypt_from_file(path, &old_password)?;
 

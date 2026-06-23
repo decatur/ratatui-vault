@@ -127,7 +127,7 @@ vim -> :help cryptmethod
 
 # Walkthrough Copy/Paste with ratatui-textarea
 
-The story of Copy/Paste with system clipboard integration is complex and counter inTUItiv.
+The story of Copy/Paste with host clipboard integration is complex and counter inTUItiv.
 Trying to implement this head on can be a really painful experience.
 
 ## Guides
@@ -176,6 +176,13 @@ Trying to implement this head on can be a really painful experience.
 └────────────────────────────────┘                              
 ```
 
-The interface to the system clipboard is provided by the terminal emulator.
+The interface to the host clipboard is provided by the terminal emulator.
 This is true even if the terminal app runs remotely via ssh.
 A terminal app has no means to access this clipboard via its hosting emulator.
+
+Note that it may be possible for the app to directly copy to the host clipboard via 
+[OSC control sequence](https://docs.rs/crossterm/latest/crossterm/clipboard/struct.CopyToClipboard.html).
+However that is one-way, and it never worked for me.
+
+
+

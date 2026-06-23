@@ -1,13 +1,11 @@
-use std::path::PathBuf;
-
 use crate::crypt;
 use crate::error_string::{Error, Result};
 
-pub fn run(path: &str, section: &str) -> Result<()> {
+pub fn run(path: &std::path::Path, section: &str) -> Result<()> {
     let section_not_found = || format!("Could not find section {section}");
 
     let password = crypt::prompt_secret("Please enter password:");
-    let haystack = crypt::decrypt_from_file(&PathBuf::from(path), &password)?;
+    let haystack = crypt::decrypt_from_file(path, &password)?;
     enum Status {
         Initial,
         SectionFound,
