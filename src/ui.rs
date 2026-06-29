@@ -51,7 +51,7 @@ pub fn run(args: Vec<String>) -> Result<()> {
         close(editor)
     } else {
         Err(Error(
-            "The edit command needs one or two path arguments".to_owned(),
+            "To edit, please specify one or two path arguments".to_owned(),
         ))
     }
 }
