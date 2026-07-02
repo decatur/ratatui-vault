@@ -8,14 +8,6 @@ mod ui;
 
 use error_string::Result;
 
-// fn help() {
-//     println!("Usage:");
-//     println!("  ratatui-vault edit vault_a [vault_b]");
-//     println!("  ratatui-vault change myvault");
-//     println!("  ratatui-vault dump myvault | grep MyBank -A 5");
-//     println!("  ratatui-vault query myvault https://github.com/login");
-// }
-
 /// # Usage
 /// ```text
 ///     ratatui-vault vault_a [vault_b]
