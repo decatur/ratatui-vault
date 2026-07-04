@@ -20,7 +20,7 @@ use crate::error_string::Error;
 pub fn run(args: Vec<String>) -> Result<()> {
     if args.len() == 1 {
         // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
-        let password = crypt::prompt_secret("Please enter password:");
+        let password = crypt::prompt_secret("Please enter vault password:");
         let target = Path::new(&args[0]);
         let (plaintext, modified) = if target.is_file() {
             match decrypt_from_file(target, &password) {
@@ -282,7 +282,7 @@ impl Editor<'_> {
                         Span::styled("^C", Style::default().add_modifier(Modifier::BOLD)),
                         Span::raw(" yank copy, "),
                         Span::styled("^↑C", Style::default().add_modifier(Modifier::BOLD)),
-                        Span::raw(" mouse selectionto clipboard"),
+                        Span::raw(" mouse selection to clipboard"),
                     ])
                 };
                 f.render_widget(Paragraph::new(message), chunks[3]);

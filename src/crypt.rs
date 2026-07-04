@@ -29,11 +29,15 @@ impl SecretString {
         assert!(s.len() >= 8, "Secret must have 8 characters");
         Self(s)
     }
+
+    pub(crate) fn plaintext(&self) -> &str {
+        &self.0
+    }
 }
 
 pub(crate) fn decrypt_from_file(path: &Path, password: &SecretString) -> Result<String> {
     let model = Model::deserialize(&std::fs::read(path).unwrap()[..]);
-    decrypt(password.0.as_bytes().to_vec(), model)
+    decrypt(password.plaintext().as_bytes().to_vec(), model)
 }
 
 fn decrypt(password: Vec<u8>, model: Model) -> Result<String> {
@@ -74,7 +78,11 @@ fn encrypt(password: &SecretString, plaintext: String) -> Result<Model> {
 
     let mut output_key_material = [0u8; 32]; // Can be any desired size
     Argon2::default()
-        .hash_password_into(password.0.as_bytes(), salt1, &mut output_key_material)
+        .hash_password_into(
+            password.plaintext().as_bytes(),
+            salt1,
+            &mut output_key_material,
+        )
         .map_err(|e| Error(e.to_string()))?;
 
     let key = Key::from_slice(&output_key_material);

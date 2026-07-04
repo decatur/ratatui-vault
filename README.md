@@ -158,7 +158,9 @@ recovery = [codes**********]
 ## Configure Vault as Helper
 For example
 ```
-git config --global --replace-all credential.helper "$HOME/projects/ratatui-vault/target/debug/ratatui_vault --vault_path_for_git=$HOME/tresor/mytresor"
+vault_exe=$HOME/projects/ratatui-vault/target/debug/ratatui_vault
+vault=$HOME/vault/mytresor
+git config --global --replace-all credential.helper "$vault_exe --vault_path_for_git=$vault"
 ```
 
 # Walkthrough Host Clipboard
