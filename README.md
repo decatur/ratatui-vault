@@ -2,8 +2,9 @@ A terminal password manager, minimal and auditable.
 * Edit encrypted file/vault
 * Import plaintext files
 * Merge two vaults
-* Query a vault 
+* Query a vault
 * Change password of vault
+* Use vault as git credential helper
 
 <img width="511" height="246" alt="Image" src="https://github.com/user-attachments/assets/3d5c0e46-c496-415a-97b8-b3884cae82bf" />
 
@@ -41,9 +42,19 @@ cargo install ratatui_vault
 # Edit a Vault
 
 ```
-cargo run sample_vault
-# Please enter password: a-a-a-a-
+echo a-a-a-a- | cargo run sample_vault
 ```
+
+will give you this:
+<pre style="margin:0pt;padding:0pt;color:white;background-color:#660066">
+ 1 [Hello-World-Section]
+ 2 user = Foo
+ 3 pwd  = CTRL+G generates a strong random key
+</pre>
+<pre style="margin:0pt;padding:0pt;color:black;background-color:white">sample_vault                                           (1,1)</pre>
+<pre style="margin:0pt;padding:0pt;background-color:#660066">
+^Q to quit, ^F to search, ^C yank copy, ^↑C mouse selection
+</pre>
 ## Keyboard Shortcuts
 
 These are the shortcuts added to, or modified from, the [ratatui-textarea default](https://docs.rs/ratatui-textarea/latest/ratatui_textarea/#minimal-usage):
@@ -79,30 +90,31 @@ Both vaults must have the same password.
 
 # Dump
 
-Dump the plaintext to `stdout`:
+Dump the complete plaintext to `stdout`.
+**Warning**: This operation is discuraged!
 ```
-cargo run sample_vault --dump`
-# Please enter password: a-a-a-a-
-# ->
-# [Hello-World]
-# user = Foo
-# pwd  = Bar
+echo a-a-a-a- | cargo run sample_vault --dump
+```
+```toml
+[Hello-World-Section]
+user = Foo
+pwd  = CTRL+G generates a strong random key
 ```
 
 # Query
 
 You can query a section (supports toml-like section header), for example
 ```
-cargo run sample_vault --query='Hello-World'
-# Please enter password: a-a-a-a-
-# ->Generate a passphrase at the cursor location
-# user=Foo
-# pwd=Bar
-
+echo a-a-a-a- | cargo run sample_vault --query='Hello-World-Section'
+```
+```toml
+user = Foo
+pwd  = CTRL+G generates a strong random key
+```
 # Or assign to variables
-source <(cargo run sample_vault --query='Hello-World')
+```
+source <(cargo run sample_vault --query='Hello-World-Section')
 echo $user
-# -> Foo
 ```
 
 # Change Vault Password
@@ -127,9 +139,27 @@ Download with
 scp my_user@my_server:~/sample_vault_2026-03-14 ~/sample_vault_2026-03-14
 ```
 
-# TODO: Git Credential Storage
+# Git Credential Helper
 
-See [Credential Storage](https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage.html#_credential_caching)
+The vault does support git credential helper (tested for HTTPS only).
+
+## Vault Helper Section
+
+Your vault section title must be the git url sans password, and the section must contain a `password = ***` pair.
+In case of GitHub the password is some kind of PAT=PersonalAccressToken, and not your GitHub login password!
+For example
+```toml
+[https://decatur@github.com]
+password = ghp_************
+login    = **********
+recovery = [codes**********]
+```
+
+## Configure Vault as Helper
+For example
+```
+git config --global --replace-all credential.helper "$HOME/projects/ratatui-vault/target/debug/ratatui_vault --vault_path_for_git=$HOME/tresor/mytresor"
+```
 
 # Walkthrough Host Clipboard
 
