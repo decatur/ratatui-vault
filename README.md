@@ -143,7 +143,7 @@ scp my_user@my_server:~/sample_vault_2026-03-14 ~/sample_vault_2026-03-14
 
 The vault does support git credential helper (tested for HTTPS only).
 
-## Vault Helper Section
+## Vault Git Helper Section
 
 Your vault section title must be the git url sans password, and the section must contain a `password = ***` pair.
 In case of GitHub the password is some kind of PAT=PersonalAccressToken, and not your GitHub login password!
@@ -155,7 +155,8 @@ login    = **********
 recovery = [codes**********]
 ```
 
-## Configure Vault as Helper
+## Configure as Git Helper
+
 For example
 ```
 vault_exe=$HOME/projects/ratatui-vault/target/debug/ratatui_vault
@@ -165,7 +166,15 @@ git config --global --replace-all credential.helper "$vault_exe"
 
 # SSH Credential Helper
 
-TODO: Explain helper section
+## Vault SSH Helper Section
+
+Your vault section title must be the ssh destination, and the section must contain a password key, for example
+```
+[myuser@myhost.de]
+password = ***
+```   
+
+## Configure as SSH Helper
 
 ```
 vault_exe=$HOME/projects/ratatui-vault/target/debug/ratatui_vault
@@ -173,7 +182,6 @@ export VAULT_PATH=$HOME/vault/mytresor
 export SSH_ASKPASS=$vault_exe
 export SSH_ASKPASS_REQUIRE=force
 ```
-
 
 # Walkthrough Host Clipboard
 

@@ -4,9 +4,14 @@ use std::{io::BufRead, path::Path};
 
 use crate::{Result, crypt::SecretString, error_string::Error};
 
-pub(super) fn vault_path_for_git(positional: &[String], options: &[[String; 2]]) -> Option<String> {
+pub(super) fn command(positional: &[String], options: &[[String; 2]]) -> Option<String> {
     if positional.len() == 1 && options.is_empty() {
-        Some(positional[0].clone())
+        let command = &positional[0];
+        if command == "get" || command == "store" {
+            Some(command.to_owned())
+        } else {
+            None
+        }
     } else {
         None
     }

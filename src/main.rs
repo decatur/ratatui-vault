@@ -35,7 +35,7 @@ pub fn main() -> Result<()> {
     {
         ssh_ask_pass::process_command(path, host)?;
     } else if let Some(path) = &path
-        && let Some(command) = git_credential_helper::vault_path_for_git(&positional, &options)
+        && let Some(command) = git_credential_helper::command(&positional, &options)
     {
         if command == "get" {
             git_credential_helper::process_command(path)?;
