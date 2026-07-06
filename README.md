@@ -159,9 +159,21 @@ recovery = [codes**********]
 For example
 ```
 vault_exe=$HOME/projects/ratatui-vault/target/debug/ratatui_vault
-vault=$HOME/vault/mytresor
-git config --global --replace-all credential.helper "$vault_exe --vault_path_for_git=$vault"
+export VAULT_PATH=$HOME/vault/mytresor
+git config --global --replace-all credential.helper "$vault_exe"
 ```
+
+# SSH Credential Helper
+
+TODO: Explain helper section
+
+```
+vault_exe=$HOME/projects/ratatui-vault/target/debug/ratatui_vault
+export VAULT_PATH=$HOME/vault/mytresor
+export SSH_ASKPASS=$vault_exe
+export SSH_ASKPASS_REQUIRE=force
+```
+
 
 # Walkthrough Host Clipboard
 
@@ -223,9 +235,16 @@ Note that it may be possible for the app to directly copy to the host clipboard 
 However that is one-way, and it never worked for me.
 
 
-# Alternative Vaults
+# Related Work
 
+* [A simple, fast TUI password manager built in Rust with Ratatui](https://github.com/Sn0wAlice/GetMyPass)
+* [The Linux Kernel Key Retention Service and why you should use it in your next application](https://blog.cloudflare.com/the-linux-kernel-key-retention-service-and-why-you-should-use-it-in-your-next-application/)
+* [Secure memory management for the paranoid](https://github.com/thesis/shrouded)
+* [Rust FFI bindings to the Linux kernel keyring functionality](https://github.com/mathstuf/rust-keyutils)
+* [Rust interface to the Linux key-management facility](https://github.com/landhb/linux-keyutils)
 * [vim cryptmethod](https://github.com/vim/vim/issues/2566)
 * Instead of `ratatui-textarea , use [edtui](https://github.com/preiter93/edtui)
 * [passwordstore](https://www.passwordstore.org/)
+* [KeePassXC Memory Security #9087](https://github.com/keepassxreboot/keepassxc/issues/9087)
+* [KeePass Security](https://keepass.info/help/base/security.html)
 

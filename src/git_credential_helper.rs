@@ -1,21 +1,12 @@
 // See [Credential Storage](https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage.html#_credential_caching)
 
-use std::{
-    io::BufRead,
-    path::{Path, PathBuf},
-};
+use std::{io::BufRead, path::Path};
 
 use crate::{Result, crypt::SecretString, error_string::Error};
 
-pub(super) fn vault_path_for_git(
-    positional: &[String],
-    options: &[[String; 2]],
-) -> Option<(String, PathBuf)> {
-    if positional.len() == 1 && options.len() == 1 && options[0][0] == "vault_path_for_git" {
-        Some((
-            positional[0].clone(),
-            Path::new(&options[0][1]).to_path_buf(),
-        ))
+pub(super) fn vault_path_for_git(positional: &[String], options: &[[String; 2]]) -> Option<String> {
+    if positional.len() == 1 && options.is_empty() {
+        Some(positional[0].clone())
     } else {
         None
     }
@@ -58,7 +49,7 @@ pub(super) fn git_credential(path: &Path) -> Result<(GitQuery, SecretString)> {
     let mut handle = stdin.lock();
     let git_query = parse_git_query(&mut handle)?;
     let section = git_query.section_header();
-    let master_password = super::prompt::show()?;
+    let master_password = super::prompt::show(&section)?;
     let haystack = super::crypt::decrypt_from_file(path, &master_password)?;
     let credential = super::commands::query::query_section_value(&haystack, &section, "password");
     credential

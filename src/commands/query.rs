@@ -51,7 +51,7 @@ fn query_section(haystack: &str, section: &str) -> (Status, Vec<String>) {
 
 pub(crate) fn query_section_value(haystack: &str, section: &str, key: &str) -> Option<String> {
     let (status, lines) = query_section(haystack, section);
-    eprintln!("{lines:?}");
+    // eprintln!("{lines:?}");
     if let Status::SectionFound = status {
         for line in lines {
             let parts: Vec<_> = line.trim().split('=').collect();

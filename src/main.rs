@@ -6,7 +6,10 @@ mod error_string;
 mod git_credential_helper;
 mod model;
 mod prompt;
+mod ssh_ask_pass;
 mod ui;
+
+use std::path::PathBuf;
 
 use error_string::Result;
 
@@ -18,15 +21,24 @@ use error_string::Result;
 ///     ratatui-vault myvault --query github
 /// ``````
 pub fn main() -> Result<()> {
+    // use ratatui_crossterm::crossterm::tty::IsTty;
+    // let is_tty: bool = std::io::stdin().is_tty();
+    // eprintln!("{is_tty}");
+
     let args = std::env::args().skip(1).collect::<Box<_>>();
     let (positional, options) = parse_args(args);
-    eprintln!("{options:?} {positional:?}");
+    let path = parse_vault_path();
+    eprintln!("{options:?} {positional:?} {path:?}");
 
-    if let Some((command, vault_path_for_git)) =
-        git_credential_helper::vault_path_for_git(&positional, &options)
+    if let Some(path) = &path
+        && let Some(host) = ssh_ask_pass::ssh_host(&positional, &options)
+    {
+        ssh_ask_pass::process_command(path, host)?;
+    } else if let Some(path) = &path
+        && let Some(command) = git_credential_helper::vault_path_for_git(&positional, &options)
     {
         if command == "get" {
-            git_credential_helper::process_command(&vault_path_for_git)?;
+            git_credential_helper::process_command(path)?;
         } else {
             // This is probably a "git store" command
         }
@@ -87,6 +99,19 @@ fn parse_args(args: Box<[String]>) -> (Vec<String>, Vec<[String; 2]>) {
         }
     }
     (positional, options)
+}
+
+fn parse_vault_path() -> Option<PathBuf> {
+    match std::env::var("VAULT_PATH") {
+        Ok(path) => Some(PathBuf::from(path)),
+        Err(err) => match err {
+            std::env::VarError::NotPresent => None,
+            std::env::VarError::NotUnicode(_os_string) => {
+                eprintln!("Env var VAULT_PATH does contain invalid unicode data");
+                None
+            }
+        },
+    }
 }
 
 #[cfg(test)]

@@ -26,7 +26,8 @@ impl fmt::Debug for SecretString {
 
 impl SecretString {
     pub(crate) fn new(s: String) -> Self {
-        assert!(s.len() >= 8, "Secret must have 8 characters");
+        // TODO: Do not panic here, as we need to reset the terminal.
+        // assert!(s.len() >= 8, "Secret must have at least 8 characters");
         Self(s)
     }
 

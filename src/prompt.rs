@@ -10,8 +10,8 @@ use std::io;
 use crate::Result;
 use crate::crypt::SecretString;
 
-pub(super) fn show() -> Result<SecretString> {
-    Prompt::prompt()
+pub(super) fn show(title: &str) -> Result<SecretString> {
+    Prompt::prompt(title)
 }
 
 struct Prompt<'a> {
@@ -20,7 +20,7 @@ struct Prompt<'a> {
 }
 
 impl Prompt<'_> {
-    fn prompt() -> Result<SecretString> {
+    fn prompt(title: &str) -> Result<SecretString> {
         let mut textarea =
             TextArea::new("".lines().map(|line| line.to_owned()).collect::<Vec<_>>());
         textarea.set_line_number_style(Style::default().fg(Color::DarkGray));
@@ -37,13 +37,13 @@ impl Prompt<'_> {
         let backend = CrosstermBackend::new(stdout);
         let term = Terminal::new(backend)?;
         let mut prompt = Self { textarea, term };
-        prompt.run()?;
+        prompt.run(title)?;
         let text = SecretString::new(prompt.textarea.lines().join("").trim().to_owned());
         close(prompt)?;
         Ok(text)
     }
 
-    fn run(&mut self) -> Result<()> {
+    fn run(&mut self, title: &str) -> Result<()> {
         loop {
             let layout = Layout::default()
                 .direction(Direction::Vertical)
@@ -62,7 +62,8 @@ impl Prompt<'_> {
                     .split(chunks[1]);
                 let status_style = Style::default().add_modifier(Modifier::REVERSED);
                 f.render_widget(
-                    Paragraph::new("CTRL+Q to exit").style(status_style),
+                    Paragraph::new(format!("Enter password for {title}; CTRL+Q to exit"))
+                        .style(status_style),
                     status_chunks[0],
                 );
             })?;
