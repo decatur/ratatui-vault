@@ -101,7 +101,7 @@ Dump the complete plaintext to `stdout`.
 ```
 echo a-a-a-a- | cargo run sample_vault --dump
 ```
-```toml
+```ini
 [MySection]
 user = Foo
 pwd  = CTRL+G generates a strong random key
@@ -109,11 +109,11 @@ pwd  = CTRL+G generates a strong random key
 
 # Query
 
-You can query a section (supports toml-like section header), for example
+You can query a section (supports ini-like section header), for example
 ```
 echo a-a-a-a- | cargo run sample_vault --query='MySection'
 ```
-```toml
+```ini
 user = Foo
 pwd  = CTRL+G generates a strong random key
 ```
@@ -151,10 +151,10 @@ The vault does support git credential helper (tested for HTTPS only).
 
 ## Vault Git Helper Section
 
-Your vault section title must be the git url sans password, and the section must contain a `password = ***` pair.
-In case of GitHub the password is some kind of PAT=PersonalAccressToken, and not your GitHub login password!
+Your vault section title must be the git url sans password, and the section must contain a `password` key.
+In case of GitHub the password is some kind of `PAT` (PersonalAccressToken), and not your GitHub login password!
 For example
-```toml
+```ini
 [https://decatur@github.com]
 password = ghp_************
 login    = **********
@@ -193,17 +193,17 @@ export SSH_ASKPASS_REQUIRE=force
 
 | Command     | VAULT_PATH | Action |
 | ----------- | ---------- | ------ |
-| vault ./sample_vault | ignored | Edit from encrypted file. |
-| vault ./plain_text | ignored | Edit from plaintext file, possibly creating file. |
-| vault | is set | Edit $VAULT_PATH |
+| vault ./sample_vault          | ignored | Edit from encrypted file. |
+| vault ./plain_text            | ignored | Create new vault or encrypt a plaintext file. |
+| vault                         | is set | Edit $VAULT_PATH |
 | vault ./sample_vault ./other_vault | ignored | Merge other_vault into sample_vault. |
 | vault ./sample_vault --query='MySection' | ignored | Emmit password key of the section on `stdout`. |
-| vault --query='MySection' | is set | Emmit password key of the section on `stdout`. |
+| vault --query='MySection'     | is set | Emmit password key of the section on `stdout`. |
 | vault ./sample_vault --change-pass | ignored | Change passphrase of vault. |
-| vault ./sample_vault --dump | ignored | Dump the vault. |
-| vault get | is set | Infer we got called from git. Parse destination `stdin` and emmit credential from $VAULT_PATH on `stdout |
-| vault store | is set | Infer we got called from git. Do nothing. |
-| vault '(myuser@myhost.de)' | is set | Infer we got called from ssh. Emmit credential from $VAULT_PATH on `stdout. |
+| vault ./sample_vault --dump   | ignored | Dump the vault. |
+| vault get                     | is set | Infer we got called from git. Parse destination `stdin` and emmit credential from $VAULT_PATH on `stdout |
+| vault store                   | is set | Infer we got called from git. Do nothing. |
+| vault '(myuser@myhost.de)'    | is set | Infer we got called from ssh. Emmit credential from $VAULT_PATH on `stdout. |
 
 
 # Walkthrough Host Clipboard
