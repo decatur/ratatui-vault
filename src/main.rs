@@ -9,17 +9,14 @@ mod prompt;
 mod ssh_ask_pass;
 mod ui;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use error_string::Result;
 
+const VAULT_PATH: &str = "VAULT_PATH";
+
 /// # Usage
-/// ```text
-///     ratatui-vault vault_a [vault_b]
-///     ratatui-vault myvault --change
-///     ratatui-vault myvault --dump | grep MyBank -A 5
-///     ratatui-vault myvault --query github
-/// ``````
+/// See https://github.com/decatur/ratatui-vault#cheat_sheet
 pub fn main() -> Result<()> {
     // use ratatui_crossterm::crossterm::tty::IsTty;
     // let is_tty: bool = std::io::stdin().is_tty();
@@ -27,23 +24,44 @@ pub fn main() -> Result<()> {
 
     let args = std::env::args().skip(1).collect::<Box<_>>();
     let (positional, options) = parse_args(args);
-    let path = parse_vault_path();
+    let path_buf = parse_vault_path();
+    let path = path_buf.as_deref();
     eprintln!("{options:?} {positional:?} {path:?}");
 
-    if let Some(path) = &path
+    if let Some(path) = path
         && let Some(host) = ssh_ask_pass::ssh_host(&positional, &options)
     {
-        ssh_ask_pass::process_command(path, host)?;
-    } else if let Some(path) = &path
+        ssh_ask_pass::process_command(path, host)
+    } else if let Some(path) = path
         && let Some(command) = git_credential_helper::command(&positional, &options)
     {
         if command == "get" {
-            git_credential_helper::process_command(path)?;
+            git_credential_helper::process_command(path)
         } else {
             // This is probably a "git store" command
+            Ok(())
         }
     } else if options.is_empty() {
-        ui::run(positional)?;
+        match (positional.len(), path) {
+            (1, _path) => ui::edit(Path::new(&positional[0])),
+            (0, Some(path)) => ui::edit(path),
+            (2, _path) => ui::merge_edit(Path::new(&positional[0]), Path::new(&positional[1])),
+            _ => {
+                panic!("Invalid arguments");
+            }
+        }
+    } else if let Some(query) = options.first()
+        && query[0] == "query"
+    {
+        let path = match (positional.len(), path) {
+            (1, _path) => Path::new(&positional[0]),
+            (0, Some(path)) => path,
+            _ => {
+                panic!("Either supply exactely one positional argument or set {VAULT_PATH}");
+            }
+        };
+
+        commands::query::run(path, &query[1])
     } else {
         assert_eq!(
             positional.len(),
@@ -54,23 +72,15 @@ pub fn main() -> Result<()> {
         assert!(path.is_file(), "Path must be a vault");
 
         assert_eq!(options.len(), 1, "Exactely one option argument expected.");
-        let [key, value] = options.first().unwrap();
+        let [key, _value] = options.first().unwrap();
         match key.as_str() {
-            "change" => {
-                commands::change::run(path)?;
-            }
-            "dump" => {
-                commands::dump::run(path)?;
-            }
-            "query" => {
-                commands::query::run(path, value)?;
-            }
+            "change-pass" => commands::change::run(path),
+            "dump" => commands::dump::run(path),
             option => {
                 panic!("Invalid option {option}")
             }
-        };
+        }
     }
-    Ok(())
 }
 
 fn split_line(line: &str) -> Option<(&str, &str)> {
@@ -102,12 +112,12 @@ fn parse_args(args: Box<[String]>) -> (Vec<String>, Vec<[String; 2]>) {
 }
 
 fn parse_vault_path() -> Option<PathBuf> {
-    match std::env::var("VAULT_PATH") {
+    match std::env::var(VAULT_PATH) {
         Ok(path) => Some(PathBuf::from(path)),
         Err(err) => match err {
             std::env::VarError::NotPresent => None,
             std::env::VarError::NotUnicode(_os_string) => {
-                eprintln!("Env var VAULT_PATH does contain invalid unicode data");
+                eprintln!("Env var {VAULT_PATH} does contain invalid unicode data");
                 None
             }
         },

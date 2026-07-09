@@ -17,44 +17,42 @@ use crate::Result;
 use crate::crypt::{self, SecretString, decrypt_from_file, encrypt_to_file};
 use crate::error_string::Error;
 
-pub fn run(args: Vec<String>) -> Result<()> {
-    if args.len() == 1 {
-        // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
-        let password = crypt::prompt_secret("Please enter vault password:");
-        let target = Path::new(&args[0]);
-        let (plaintext, modified) = if target.is_file() {
-            match decrypt_from_file(target, &password) {
-                Ok(plaintext) => (plaintext, false),
-                Err(_) => (String::from_utf8(std::fs::read(target)?)?, true),
-            }
-        } else {
-            ("[MySection]".to_owned(), true)
-        };
-
-        let mut editor = Editor::new(target, plaintext, password, modified)?;
-        editor.run()?;
-        close(editor)
-    } else if args.len() == 2 {
-        // merge right onto left
-        let target = Path::new(&args[0]);
-        if !target.is_file() {
-            return Err(Error(format!("Target {target:?} is not a file")));
+pub fn edit(path: &Path) -> Result<()> {
+    // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
+    let password = crypt::prompt_secret("Please enter vault password:");
+    let (plaintext, modified) = if path.is_file() {
+        match decrypt_from_file(path, &password) {
+            Ok(plaintext) => (plaintext, false),
+            Err(_) => (String::from_utf8(std::fs::read(path)?)?, true),
         }
-        let source = Path::new(&args[1]);
-        if !source.is_file() {
-            return Err(Error(format!("Source {source:?} is not a file")));
-        }
-        let password = crypt::prompt_secret("Please enter password:");
-        let plaintext = crate::commands::diff::merge(target, source, &password);
-        let mut editor = Editor::new(target, plaintext, password, true)?;
-        editor.run()?;
-        close(editor)
     } else {
-        Err(Error(
-            "To edit, please specify one or two path arguments".to_owned(),
-        ))
-    }
+        eprintln!("Create new vault from template");
+        (
+            "[MySection]\nuser = myuser\npassword = FooBar".to_owned(),
+            true,
+        )
+    };
+
+    let mut editor = Editor::new(path, plaintext, password, modified)?;
+    editor.run()?;
+    close(editor)
 }
+
+pub fn merge_edit(target: &Path, source: &Path) -> Result<()> {
+    // merge right onto left
+    if !target.is_file() {
+        return Err(Error(format!("Target {target:?} is not a file")));
+    }
+    if !source.is_file() {
+        return Err(Error(format!("Source {source:?} is not a file")));
+    }
+    let password = crypt::prompt_secret("Please enter password:");
+    let plaintext = crate::commands::diff::merge(target, source, &password);
+    let mut editor = Editor::new(target, plaintext, password, true)?;
+    editor.run()?;
+    close(editor)
+}
+
 struct SearchBox<'a> {
     textarea: TextArea<'a>,
     open: bool,

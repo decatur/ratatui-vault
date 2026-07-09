@@ -53,7 +53,7 @@ fn decrypt(password: Vec<u8>, model: Model) -> Result<String> {
     let nonce = XNonce::from_slice(&model.nonce); //GenericArray::try_from_vec(nonce).unwrap();
     let plaintext = cipher
         .decrypt(nonce, model.ciphertext.as_ref())
-        .map_err(|_| Error("Could not decrypt file with provided pass phrase".to_owned()))?;
+        .map_err(|_| Error("Could not decrypt file with provided passphrase".to_owned()))?;
 
     let plaintext = String::from_utf8(plaintext)?;
     Ok(plaintext)
