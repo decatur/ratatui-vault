@@ -48,9 +48,10 @@ echo a-a-a-a- | cargo run sample_vault
 ```
 
 will give you something like this:
-``ttps://asciiflow.com`
+
+```https://asciiflow.com
 ┌────────────────────────────────────────────────────────────┐ 
-│ 1 [Hello-World-Section]                                    │ 
+│ 1 [MySection]                                    │ 
 │ 2 user = Foo                                               │ 
 │ 3 pwd  = CTRL+G generates a strong random key              │ 
 ├────────────────────────────────────────────────────────────│ 
@@ -96,12 +97,12 @@ Both vaults must have the same passphrase.
 # Dump
 
 Dump the complete plaintext to `stdout`.
-**Warning**: This operation is discuraged!
+**Warning**: This operation is discouraged!
 ```
 echo a-a-a-a- | cargo run sample_vault --dump
 ```
 ```toml
-[Hello-World-Section]
+[MySection]
 user = Foo
 pwd  = CTRL+G generates a strong random key
 ```
@@ -110,7 +111,7 @@ pwd  = CTRL+G generates a strong random key
 
 You can query a section (supports toml-like section header), for example
 ```
-echo a-a-a-a- | cargo run sample_vault --query='Hello-World-Section'
+echo a-a-a-a- | cargo run sample_vault --query='MySection'
 ```
 ```toml
 user = Foo
@@ -118,7 +119,7 @@ pwd  = CTRL+G generates a strong random key
 ```
 ## Query to Variable
 ```
-source <(cargo run sample_vault --query='Hello-World-Section')
+source <(cargo run sample_vault --query='MySection')
 echo $user
 ```
 
@@ -196,8 +197,8 @@ export SSH_ASKPASS_REQUIRE=force
 | vault ./plain_text | ignored | Edit from plaintext file, possibly creating file. |
 | vault | is set | Edit $VAULT_PATH |
 | vault ./sample_vault ./other_vault | ignored | Merge other_vault into sample_vault. |
-| vault ./sample_vault --query='Hello-World-Section' | ignored | Emmit password key of the section on `stdout`. |
-| vault --query='Hello-World-Section' | is set | Emmit password key of the section on `stdout`. |
+| vault ./sample_vault --query='MySection' | ignored | Emmit password key of the section on `stdout`. |
+| vault --query='MySection' | is set | Emmit password key of the section on `stdout`. |
 | vault ./sample_vault --change-pass | ignored | Change passphrase of vault. |
 | vault ./sample_vault --dump | ignored | Dump the vault. |
 | vault get | is set | Infer we got called from git. Parse destination `stdin` and emmit credential from $VAULT_PATH on `stdout |
