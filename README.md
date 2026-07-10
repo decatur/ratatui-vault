@@ -172,6 +172,8 @@ git config --global --replace-all credential.helper "$vault_exe"
 
 # SSH/SCP/SFTP Credential Helper
 
+The `ssh` helper will not only extract the destination password from the vault, it will also cache it in the Linux key-management facility (as `keyctl show` will tell).
+
 ## Vault SSH Helper Section
 
 Your vault section title must be the ssh destination, and the section must contain a password key, for example

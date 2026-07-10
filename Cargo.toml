@@ -19,4 +19,5 @@ ratatui-core = { version = "0.1.0" }
 ratatui-crossterm = { version = "0.1.0" }
 ratatui-textarea = { version="0.8.0", features = ["search"] }
 ratatui-widgets = { version = "0.3.0" }
+zeroize = { version="1.9.0", features = ["zeroize_derive"] }
 

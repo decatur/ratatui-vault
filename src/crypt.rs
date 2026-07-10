@@ -12,10 +12,12 @@ use rand_chacha::{
     rand_core::{RngCore, SeedableRng},
 };
 
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 use crate::error_string::{Error, Result};
 use crate::model::Model;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Zeroize, ZeroizeOnDrop)]
 pub(crate) struct SecretString(String);
 
 impl fmt::Debug for SecretString {
