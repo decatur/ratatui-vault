@@ -5,7 +5,7 @@ A terminal password manager, minimal and auditable.
 * Query a vault
 * Change passphrase of vault
 * Implements `git` credential helper
-* Implements `ssh` credential helper
+* Implements credential helper for the `ssh`, `scp` ans `sftp`family.
 
 <img width="511" height="246" alt="Image" src="https://github.com/user-attachments/assets/3d5c0e46-c496-415a-97b8-b3884cae82bf" />
 
@@ -170,7 +170,7 @@ export VAULT_PATH=$HOME/vault/mytresor
 git config --global --replace-all credential.helper "$vault_exe"
 ```
 
-# SSH Credential Helper
+# SSH/SCP/SFTP Credential Helper
 
 ## Vault SSH Helper Section
 
@@ -205,6 +205,15 @@ export SSH_ASKPASS_REQUIRE=force
 | vault store                   | is set | Infer we got called from git. Do nothing. |
 | vault '(myuser@myhost.de)'    | is set | Infer we got called from ssh. Emmit credential from $VAULT_PATH on `stdout. |
 
+# Persistent Passphrase
+
+Please prefer the Linux key management facility in favor of env variables or files.
+
+```bash
+read; echo $REPLY | keyctl padd user mykey @u
+# Then later, in any shell
+keyctl pipe $(keyctl request user mykey) | cargo run sample_vault
+```
 
 # Walkthrough Host Clipboard
 

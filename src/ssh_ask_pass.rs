@@ -1,3 +1,4 @@
+use linux_keyutils::{KeyRing, KeyRingIdentifier};
 use std::path::Path;
 
 use crate::{Result, crypt::SecretString, error_string::Error};
@@ -20,14 +21,35 @@ pub(super) fn ssh_host(positional: &[String], options: &[[String; 2]]) -> Option
 
 pub(super) fn process_command(path: &Path, host: String) -> Result<()> {
     let section = &host;
-    let master_password = super::prompt::show(section)?;
-    let haystack = super::crypt::decrypt_from_file(path, &master_password)?;
-    let credential = super::commands::query::query_section_value(&haystack, section, "password");
-    let s = credential.map(SecretString::new).ok_or(Error(format!(
-        "Could not find ssh_password in section {section}"
-    )))?;
+    let ring = KeyRing::from_special_id(KeyRingIdentifier::User, false).unwrap();
+    let key = ring.search(section);
+    let s = match key {
+        Ok(key) => {
+            let mut buffer = [0; 100];
+            let n = key.read(&mut buffer).unwrap();
+            let payload = String::from_utf8(buffer[0..n].to_vec()).unwrap();
+            SecretString::new(payload)
+        }
+        Err(_) => {
+            // Probably a KeyDoesNotExist, but we do not care.
+            let master_password = super::prompt::show(section)?;
+            let haystack = super::crypt::decrypt_from_file(path, &master_password)?;
+            let credential =
+                super::commands::query::query_section_value(&haystack, section, "password");
+            credential.map(SecretString::new).ok_or(Error(format!(
+                "Could not find ssh_password in section {section}"
+            )))?
+        }
+    };
+
     // eprintln!("{}", s.plaintext());
     println!("{}", s.plaintext());
+
+    eprintln!("Setting key for {section}");
+    let _key = ring
+        .add_key(section, s.plaintext())
+        .map_err(|err| Error(err.to_string()))?;
+
     Ok(())
 }
 
