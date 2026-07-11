@@ -12,7 +12,7 @@ impl core::fmt::Display for Error {
 }
 
 // Convenience mapping so we can do `x?` instead of `x.map_err(|e| Error(e.to_string()))?`
-// whenever `x.err()` implements `std::error::Error`.
+// whenever `x` implements `std::error::Error`.
 impl<E: std::error::Error> From<E> for Error {
     fn from(e: E) -> Self {
         Self(e.to_string())

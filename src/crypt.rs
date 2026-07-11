@@ -39,7 +39,7 @@ impl SecretString {
 }
 
 pub(crate) fn decrypt_from_file(path: &Path, password: &SecretString) -> Result<String> {
-    let model = Model::deserialize(&std::fs::read(path).unwrap()[..]);
+    let model = Model::deserialize(&std::fs::read(path)?[..]);
     decrypt(password.plaintext().as_bytes().to_vec(), model)
 }
 
@@ -52,7 +52,7 @@ fn decrypt(password: Vec<u8>, model: Model) -> Result<String> {
     let key = Key::from_slice(&output_key_material);
     let cipher = XChaCha20Poly1305::new(key);
 
-    let nonce = XNonce::from_slice(&model.nonce); //GenericArray::try_from_vec(nonce).unwrap();
+    let nonce = XNonce::from_slice(&model.nonce);
     let plaintext = cipher
         .decrypt(nonce, model.ciphertext.as_ref())
         .map_err(|_| Error("Could not decrypt file with provided passphrase".to_owned()))?;
@@ -91,9 +91,7 @@ fn encrypt(password: &SecretString, plaintext: String) -> Result<Model> {
     let key = Key::from_slice(&output_key_material);
     let cipher = XChaCha20Poly1305::new(key);
     let nonce = XChaCha20Poly1305::generate_nonce(&mut OsRng);
-    let ciphertext = cipher
-        .encrypt(&nonce, plaintext.into_bytes().as_ref())
-        .unwrap();
+    let ciphertext = cipher.encrypt(&nonce, plaintext.into_bytes().as_ref())?;
 
     Ok(Model {
         version: 1,

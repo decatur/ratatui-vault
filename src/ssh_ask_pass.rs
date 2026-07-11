@@ -21,13 +21,13 @@ pub(super) fn ssh_host(positional: &[String], options: &[[String; 2]]) -> Option
 
 pub(super) fn process_command(path: &Path, host: String) -> Result<()> {
     let section = &host;
-    let ring = KeyRing::from_special_id(KeyRingIdentifier::User, false).unwrap();
+    let ring = KeyRing::from_special_id(KeyRingIdentifier::User, false)?;
     let key = ring.search(section);
     let s = match key {
         Ok(key) => {
             let mut buffer = [0; 100];
-            let n = key.read(&mut buffer).unwrap();
-            let payload = String::from_utf8(buffer[0..n].to_vec()).unwrap();
+            let n = key.read(&mut buffer)?;
+            let payload = String::from_utf8(buffer[0..n].to_vec())?;
             SecretString::new(payload)
         }
         Err(_) => {
@@ -46,9 +46,7 @@ pub(super) fn process_command(path: &Path, host: String) -> Result<()> {
     println!("{}", s.plaintext());
 
     eprintln!("Setting key for {section}");
-    let _key = ring
-        .add_key(section, s.plaintext())
-        .map_err(|err| Error(err.to_string()))?;
+    let _key = ring.add_key(section, s.plaintext())?;
 
     Ok(())
 }
