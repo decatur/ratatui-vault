@@ -48,8 +48,10 @@ cargo install ratatui_vault
 
 # Edit a Vault
 
+The passphrase for the `sample_vault` is the character `a`.
+
 ```
-echo a-a-a-a- | cargo run sample_vault
+cargo run sample_vault # Passphrase 'a'
 ```
 
 will give you something like this:
@@ -104,7 +106,7 @@ Both vaults must have the same passphrase.
 Dump the complete plaintext to `stdout`.
 **Warning**: This operation is discouraged!
 ```
-echo a-a-a-a- | cargo run sample_vault --dump
+cargo run sample_vault --dump   # Passphrase 'a'
 ```
 ```ini
 [MySection]
@@ -116,7 +118,7 @@ pwd  = CTRL+G generates a strong random key
 
 You can query a section (supports ini-like section header), for example
 ```
-echo a-a-a-a- | cargo run sample_vault --query='MySection'
+cargo run sample_vault --query='MySection'  # Passphrase 'a'
 ```
 ```ini
 user = Foo

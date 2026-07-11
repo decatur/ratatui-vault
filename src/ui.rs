@@ -1,3 +1,4 @@
+use linux_keyutils::{KeyRing, KeyRingIdentifier};
 use ratatui_core::layout::{Constraint, Direction, Layout};
 use ratatui_core::style::{Color, Modifier, Style};
 use ratatui_core::terminal::Terminal;
@@ -17,11 +18,23 @@ use crate::Result;
 use crate::crypt::{self, SecretString, decrypt_from_file, encrypt_to_file};
 use crate::error_string::Error;
 
+const VAULT_MASTER_PASSWORD_DESCRIPTION: &str = "VAULT_MASTER_PASSWORD";
+
 pub fn edit(path: &Path) -> Result<()> {
+    eprintln!("Run edit mode");
     // Open a file. The file may not exist yet, and it may be encrypted or plaintext.
-    let password = crypt::prompt_secret("Please enter vault password:");
+    let vault_password = crypt::prompt_secret("Please enter vault password:");
+    // eprintln!("Get process keyring.");
+    let ring = KeyRing::from_special_id(KeyRingIdentifier::Process, true)?;
+    // eprintln!("Adding vault password to process keyring.");
+    let _key = ring.add_key(
+        VAULT_MASTER_PASSWORD_DESCRIPTION,
+        vault_password.plaintext(),
+    );
+    // eprintln!("Added vault password to process keyring.");
+
     let (plaintext, modified) = if path.is_file() {
-        match decrypt_from_file(path, &password) {
+        match decrypt_from_file(path, &vault_password) {
             Ok(plaintext) => (plaintext, false),
             Err(_) => (String::from_utf8(std::fs::read(path)?)?, true),
         }
@@ -33,7 +46,7 @@ pub fn edit(path: &Path) -> Result<()> {
         )
     };
 
-    let mut editor = Editor::new(path, plaintext, password, modified)?;
+    let mut editor = Editor::new(path, plaintext, modified)?;
     editor.run()?;
     close(editor)
 }
@@ -46,9 +59,15 @@ pub fn merge_edit(target: &Path, source: &Path) -> Result<()> {
     if !source.is_file() {
         return Err(Error(format!("Source {source:?} is not a file")));
     }
-    let password = crypt::prompt_secret("Please enter password:");
-    let plaintext = crate::commands::diff::merge(target, source, &password);
-    let mut editor = Editor::new(target, plaintext, password, true)?;
+    let vault_password = crypt::prompt_secret("Please enter password:");
+    let ring = KeyRing::from_special_id(KeyRingIdentifier::Process, true)?;
+    let _key = ring.add_key(
+        VAULT_MASTER_PASSWORD_DESCRIPTION,
+        vault_password.plaintext(),
+    );
+
+    let plaintext = crate::commands::diff::merge(target, source, &vault_password);
+    let mut editor = Editor::new(target, plaintext, true)?;
     editor.run()?;
     close(editor)
 }
@@ -122,11 +141,10 @@ struct DocumentView<'a> {
     textarea: TextArea<'a>,
     path: PathBuf,
     modified: bool,
-    password: SecretString,
 }
 
 impl DocumentView<'_> {
-    fn new(path: &Path, plaintext: String, password: SecretString) -> Result<Self> {
+    fn new(path: &Path, plaintext: String) -> Result<Self> {
         let mut textarea = TextArea::new(
             plaintext
                 .lines()
@@ -143,7 +161,6 @@ impl DocumentView<'_> {
             textarea,
             path: path.to_path_buf(),
             modified: false,
-            password,
         })
     }
 
@@ -154,7 +171,13 @@ impl DocumentView<'_> {
                 match yes_no.as_str() {
                     "y" => {
                         let plaintext = self.textarea.lines().join("\n");
-                        encrypt_to_file(plaintext, &self.path, &self.password)?;
+
+                        let ring = KeyRing::from_special_id(KeyRingIdentifier::Process, false)?;
+                        let key = ring.search(VAULT_MASTER_PASSWORD_DESCRIPTION)?;
+                        let mut buffer = [0; 100];
+                        let n = key.read(&mut buffer)?;
+                        let payload = String::from_utf8(buffer[0..n].to_vec())?;
+                        encrypt_to_file(plaintext, &self.path, &SecretString::new(payload))?;
                         self.modified = false;
                         break;
                     }
@@ -182,13 +205,8 @@ struct Editor<'a> {
 }
 
 impl Editor<'_> {
-    fn new(
-        source: &Path,
-        plaintext: String,
-        password: SecretString,
-        modified: bool,
-    ) -> Result<Self> {
-        let mut document = DocumentView::new(source, plaintext, password)?;
+    fn new(source: &Path, plaintext: String, modified: bool) -> Result<Self> {
+        let mut document = DocumentView::new(source, plaintext)?;
         document.modified = modified;
 
         let mut stdout = io::stdout();
