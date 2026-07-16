@@ -6,7 +6,7 @@ A terminal password manager, minimal and auditable.
 * Query a vault
 * Change passphrase of vault
 * Implements `git` credential helper
-* Implements credential helper for the `ssh`, `scp` and `sftp` family.
+* Implements credential helper for the `ssh`, `scp`, `sftp` and `git_over_ssh` family.
 * Linux only; on MS Windows, use `wsl2`.
 
 
